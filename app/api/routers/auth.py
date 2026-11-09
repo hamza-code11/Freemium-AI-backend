@@ -25,6 +25,9 @@ from app.services.user_service import UserService
 from app.repositories.user_repository import UserRepository
 from app.services.password_reset_service import PasswordResetService
 
+# Cross-site (Vercel -> Render) ke liye "none" + secure zaroori hai
+COOKIE_SAMESITE = "none" if COOKIE_SECURE else "lax"
+
 router = APIRouter(
     prefix="/api/auth",
     tags=["Authentication"]
@@ -46,7 +49,6 @@ def register(
     )
 
 
-
 @router.post("/login")
 @limiter.limit("5/minute")
 def login(
@@ -66,18 +68,16 @@ def login(
         value=result["refresh_token"],
         httponly=True,
         secure=COOKIE_SECURE,
-        samesite="lax",
+        samesite=COOKIE_SAMESITE,
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
         path="/api/auth"
     )
 
-    # USER DATA BHI RETURN KAREIN
     return {
         "access_token": result["access_token"],
         "token_type": "bearer",
-        "user": UserResponse.model_validate(result["user"]) # User data add kiya
+        "user": UserResponse.model_validate(result["user"])
     }
-
 
 
 @router.get("/me", response_model=UserResponse)
@@ -85,13 +85,10 @@ def get_current_user(
     user_id: int = Depends(verify_access_token),
     db: Session = Depends(get_db)
 ):
-    # 🔥 Ab ye joinedload ke sath user aur business_profiles dono layega
     user = UserRepository.get_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
-
-
 
 
 @router.post("/refresh")
@@ -116,7 +113,7 @@ def refresh(
         value=result["refresh_token"],
         httponly=True,
         secure=COOKIE_SECURE,
-        samesite="lax",
+        samesite=COOKIE_SAMESITE,
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
         path="/api/auth"
     )
@@ -125,7 +122,6 @@ def refresh(
         "access_token": result["access_token"],
         "token_type": "bearer"
     }
-
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
@@ -142,11 +138,10 @@ def logout(
             path="/api/auth",
             httponly=True,
             secure=COOKIE_SECURE,
-            samesite="lax"
+            samesite=COOKIE_SAMESITE
         )
 
     return None
-
 
 
 @router.post("/logout-all")
@@ -165,14 +160,13 @@ def logout_all_devices(
         path="/api/auth",
         httponly=True,
         secure=COOKIE_SECURE,
-        samesite="lax"
+        samesite=COOKIE_SAMESITE
     )
 
     return {
         "message": "Logged out from all devices successfully",
         "revoked_sessions": revoked_count
     }
-
 
 
 @router.patch("/profile", response_model=UserResponse)
@@ -198,8 +192,6 @@ async def update_profile(
     )
 
     return updated_user
-
-
 
 
 @router.post("/change-password")
@@ -229,12 +221,10 @@ def change_password(
         path="/api/auth",
         httponly=True,
         secure=COOKIE_SECURE,
-        samesite="lax"
+        samesite=COOKIE_SAMESITE
     )
 
     return result
-
-
 
 
 @router.post("/forgot-password")
@@ -266,8 +256,6 @@ def verify_reset_otp(
     )
 
 
-
-
 @router.post("/reset-password")
 def reset_password(
     request: ResetPassword,
@@ -279,4 +267,4 @@ def reset_password(
         new_password=request.new_password
     )
 
-
+    

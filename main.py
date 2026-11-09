@@ -1,5 +1,7 @@
+import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -18,11 +20,12 @@ from app.api.routers.history import router as history_router
 from app.api.routers.dashboard import router as dashboard_router
 from app.api.routers.support import router as support_router
 
-
+load_dotenv()
 
 Path("uploads/products").mkdir(parents=True, exist_ok=True)
 Path("uploads/users").mkdir(parents=True, exist_ok=True)
 Path("uploads/admins").mkdir(parents=True, exist_ok=True)
+Path("uploads/support").mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
     title="Python Backend API",
@@ -33,9 +36,16 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# Comma separated: "https://my-app.vercel.app,http://localhost:3001"
+ALLOWED_ORIGINS = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv("FRONTEND_URLS", "http://localhost:3001").split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001"],  # apne frontend ka URL
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,8 +61,6 @@ app.include_router(growth_router)
 app.include_router(history_router)
 app.include_router(dashboard_router)
 app.include_router(support_router)
-
-
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
