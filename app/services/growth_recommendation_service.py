@@ -13,6 +13,7 @@ from app.models.business_profile import BusinessProfile
 from app.models.growth_recommendation import GrowthRecommendation
 from app.schemas.growth_recommendation import GrowthRecommendationRequest
 
+
 client = genai.Client(api_key=GEMINI_RECOMMENDATION_API_KEY)
 
 ALLOWED_TOOLS = {

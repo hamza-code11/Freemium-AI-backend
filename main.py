@@ -19,6 +19,11 @@ from app.api.routers.growth_recommendations import router as growth_router
 from app.api.routers.history import router as history_router
 from app.api.routers.dashboard import router as dashboard_router
 from app.api.routers.support import router as support_router
+from app.api.routers.admin_stats import router as admin_stats_router
+from app.api.routers.admin_users import router as admin_users_router
+from app.api.routers.admin_dashboard import router as admin_dashboard
+
+
 
 load_dotenv()
 
@@ -61,6 +66,11 @@ app.include_router(growth_router)
 app.include_router(history_router)
 app.include_router(dashboard_router)
 app.include_router(support_router)
+app.include_router(admin_stats_router)
+app.include_router(admin_users_router)
+app.include_router(admin_dashboard)
+
+
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
