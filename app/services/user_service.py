@@ -66,6 +66,7 @@ class UserService:
 
 
 
+
     @staticmethod
     def login_user(db: Session, email: str, password: str):
         email = email.strip().lower()
@@ -77,15 +78,18 @@ class UserService:
             verify_password(password, DUMMY_HASH)
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
+        # 1. Password check karein
         if not verify_password(password, user.password):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        if not user or not verify_password(password, user.password):
+        # 2. Suspended check (Yeh naya block add karein)
+        if user.is_suspended:
             raise HTTPException(
-                status_code=401,
-                detail="Invalid email or password"
+                status_code=403, 
+                detail="Your account has been suspended. Please contact support."
             )
 
+        # Baaki ka code (session creation, tokens, etc.) wesa hi rahega...
         session_id, refresh_token, token_hash = create_refresh_token()
 
         expires_at = datetime.now(timezone.utc) + timedelta(
@@ -118,7 +122,6 @@ class UserService:
         except Exception:
             db.rollback()
             raise
-
 
 
     @staticmethod

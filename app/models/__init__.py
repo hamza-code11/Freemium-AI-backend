@@ -8,3 +8,4 @@ from app.models.content_generation import ContentGeneration
 from app.models.campaign import Campaign
 from app.models.growth_recommendation import GrowthRecommendation
 from app.models.support_ticket import SupportTicket
+from app.models.contact_message import ContactMessage

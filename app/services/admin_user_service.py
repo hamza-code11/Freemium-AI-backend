@@ -10,10 +10,13 @@ from app.models.user_session import UserSession
 from app.models.content_generation import ContentGeneration
 from app.models.campaign import Campaign
 from app.models.growth_recommendation import GrowthRecommendation
+from app.models.business_profile import BusinessProfile
 from app.schemas.admin_user import (
     AdminUserItem, AdminUserListResponse, AdminUserDetail,
+    AdminBusinessProfile,
+    AdminUserBusinessProfileResponse,
 )
-
+from fastapi import HTTPException
 
 def _aware(dt):
     if dt is None:
@@ -238,3 +241,32 @@ class AdminUserService:
             campaigns_generated=campaign_count,
             recommendations_generated=rec_count,
         )
+    
+
+
+
+
+    @staticmethod
+    def get_business_profile(db: Session, user_id: int) -> AdminUserBusinessProfileResponse:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        profiles = (
+            db.query(BusinessProfile)
+            .filter(BusinessProfile.user_id == user_id)
+            .order_by(desc(BusinessProfile.created_at))   # newest first
+            .all()
+        )
+
+        return AdminUserBusinessProfileResponse(
+            user_id=user.id,
+            user_name=user.name,
+            user_email=user.email,
+            has_profile=len(profiles) > 0,
+            total_profiles=len(profiles),
+            profiles=[AdminBusinessProfile.model_validate(p) for p in profiles],
+        )
+
+
+

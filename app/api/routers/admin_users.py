@@ -10,6 +10,7 @@ from app.core.admin_security import get_current_admin
 from app.models.admin import Admin
 from app.schemas.admin_user import AdminUserListResponse, AdminUserDetail
 from app.services.admin_user_service import AdminUserService
+from app.schemas.admin_user import AdminUserBusinessProfileResponse
 
 router = APIRouter(prefix="/api/admin/users", tags=["Admin Users"])
 
@@ -60,3 +61,14 @@ def toggle_user_suspension(
         "message": "User suspended" if user.is_suspended else "User activated",
         "is_suspended": user.is_suspended,
     }
+
+
+
+@router.get("/{user_id}/business-profile", response_model=AdminUserBusinessProfileResponse)
+def get_user_business_profile(
+    user_id: int,
+    admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    return AdminUserService.get_business_profile(db, user_id)
+

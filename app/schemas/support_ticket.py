@@ -35,4 +35,7 @@ class SupportTicketListResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
-    
+
+
+class SupportTicketStatusUpdate(BaseModel):
+    status: TicketStatus

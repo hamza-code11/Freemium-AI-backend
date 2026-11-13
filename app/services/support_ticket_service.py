@@ -119,4 +119,40 @@ class SupportTicketService:
 
         return filename
 
-    
+
+
+
+    # ==========================================
+    # 3. ADMIN LIST ALL TICKETS
+    # ==========================================
+    @staticmethod
+    def list_all_tickets(
+        db: Session,
+        page: int = 1,
+        page_size: int = 10,
+        search: str | None = None,
+        status_filter: str | None = None,
+    ) -> SupportTicketListResponse:
+        items, total = SupportTicketRepository.get_all_paginated(
+            db, page=page, page_size=page_size, search=search, status_filter=status_filter
+        )
+
+        total_pages = max(1, (total + page_size - 1) // page_size)
+
+        return SupportTicketListResponse(
+            items=[SupportTicketResponse.model_validate(t) for t in items],
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+        )
+
+    # ==========================================
+    # 4. ADMIN UPDATE STATUS
+    # ==========================================
+    @staticmethod
+    def update_ticket_status(db: Session, ticket_id: int, new_status: str) -> SupportTicketResponse:
+        ticket = SupportTicketRepository.update_status(db, ticket_id, new_status)
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Ticket not found")
+        return SupportTicketResponse.model_validate(ticket)

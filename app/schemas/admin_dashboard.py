@@ -1,5 +1,3 @@
-# app/schemas/admin_dashboard.py
-
 from datetime import datetime
 from typing import Literal, Optional
 
@@ -43,8 +41,32 @@ class RecentLoginItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ChartPoint(BaseModel):
+    label: str
+    value: int
+
+
+class UserGrowthChart(BaseModel):
+    points: list[ChartPoint]
+    totals: int
+
+
+class AIGenerationSeries(BaseModel):
+    name: Literal["content", "campaign", "growth"]
+    points: list[ChartPoint]
+
+
+class AIGenerationChart(BaseModel):
+    labels: list[str]
+    series: list[AIGenerationSeries]
+    totals: dict[str, int]
+    combined_total: int
+
+
 class AdminDashboardResponse(BaseModel):
     stats: DashboardUserStats
     tool_usage: list[ToolUsageItem]
     recent_generations: list[RecentGenerationItem]
     recent_logins: list[RecentLoginItem]
+    user_growth_chart: UserGrowthChart
+    ai_generation_chart: AIGenerationChart

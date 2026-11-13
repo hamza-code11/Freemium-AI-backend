@@ -22,6 +22,9 @@ from app.api.routers.support import router as support_router
 from app.api.routers.admin_stats import router as admin_stats_router
 from app.api.routers.admin_users import router as admin_users_router
 from app.api.routers.admin_dashboard import router as admin_dashboard
+from app.api.routers import admin_usage
+from app.api.routers import contact
+from app.api.routers.support import router as support_router, admin_router as admin_support_router
 
 
 
@@ -66,9 +69,13 @@ app.include_router(growth_router)
 app.include_router(history_router)
 app.include_router(dashboard_router)
 app.include_router(support_router)
+app.include_router(admin_support_router)
 app.include_router(admin_stats_router)
 app.include_router(admin_users_router)
 app.include_router(admin_dashboard)
+app.include_router(admin_usage.router)
+app.include_router(contact.router)
+app.include_router(contact.admin_router)
 
 
 

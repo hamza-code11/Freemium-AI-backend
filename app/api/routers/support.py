@@ -11,8 +11,13 @@ from app.schemas.support_ticket import (
     SupportTicketListResponse,
 )
 from app.services.support_ticket_service import SupportTicketService
+from app.core.admin_security import get_current_admin
+from app.models.admin import Admin
+from app.schemas.support_ticket import SupportTicketStatusUpdate
+
 
 router = APIRouter(prefix="/api/support", tags=["Support Tickets"])
+admin_router = APIRouter(prefix="/api/admin/support", tags=["Admin Support Tickets"])
 
 
 # ==========================================
@@ -73,3 +78,44 @@ def list_user_tickets(
         page=page,
         page_size=page_size,
     )
+
+
+
+@admin_router.get(
+    "/tickets",
+    response_model=SupportTicketListResponse,
+)
+def admin_list_tickets(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    search: str | None = Query(None),
+    status: str | None = Query(None),
+    admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    List all support tickets for the admin panel.
+    """
+    return SupportTicketService.list_all_tickets(
+        db=db,
+        page=page,
+        page_size=page_size,
+        search=search,
+        status_filter=status,
+    )
+
+
+@admin_router.patch(
+    "/tickets/{ticket_id}/status",
+    response_model=SupportTicketResponse,
+)
+def admin_update_ticket_status(
+    ticket_id: int,
+    payload: SupportTicketStatusUpdate,
+    admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    Update the status of a support ticket.
+    """
+    return SupportTicketService.update_ticket_status(db, ticket_id, payload.status)

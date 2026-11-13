@@ -33,4 +33,37 @@ class AdminUserDetail(AdminUserItem):
     content_generated: int = 0
     campaigns_generated: int = 0
     recommendations_generated: int = 0
+
+    
+
+
+
+
+
+
+
+class AdminBusinessProfile(BaseModel):
+    id: int
+    business_name: str
+    business_type: Optional[str] = None
+    business_description: Optional[str] = None
+    services: Optional[str] = None
+    business_goals: Optional[str] = None
+    target_audience: Optional[list[str]] = None
+    website: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+
+class AdminUserBusinessProfileResponse(BaseModel):
+    user_id: int
+    user_name: str
+    user_email: str
+    has_profile: bool
+    total_profiles: int = 0 
+    profiles: list[AdminBusinessProfile] = [] 
     

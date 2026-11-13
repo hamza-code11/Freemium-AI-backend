@@ -43,18 +43,21 @@ def create_access_token(data: dict) -> str:
 
 
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import Depends
+from sqlalchemy.orm import Session
 import jwt
 
 from app.core.config import SECRET_KEY, ALGORITHM
+from app.core.database import get_db
+from app.models.user import User 
 
 security = HTTPBearer()
 
 
 def verify_access_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
 ):
     token = credentials.credentials
 
@@ -73,6 +76,14 @@ def verify_access_token(
                 detail="Invalid token"
             )
 
+        # CHECK IF USER IS SUSPENDED
+        user = db.query(User).filter(User.id == int(user_id)).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+            
+        if user.is_suspended:
+            raise HTTPException(status_code=403, detail="Your account has been suspended.")
+
         return user_id
 
     except jwt.InvalidTokenError:
@@ -80,6 +91,8 @@ def verify_access_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token"
         )
+
+    
 
 
 

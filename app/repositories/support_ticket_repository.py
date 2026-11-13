@@ -45,4 +45,43 @@ class SupportTicketRepository:
     @staticmethod
     def get_by_id(db: Session, ticket_id: int):
         return db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
-    
+
+
+    @staticmethod
+    def get_all_paginated(
+        db: Session,
+        page: int = 1,
+        page_size: int = 10,
+        search: str | None = None,
+        status_filter: str | None = None,
+    ):
+        query = db.query(SupportTicket)
+
+        if search and search.strip():
+            term = f"%{search.strip()}%"
+            query = query.filter(
+                (SupportTicket.ticket_number.ilike(term)) |
+                (SupportTicket.name.ilike(term)) |
+                (SupportTicket.email.ilike(term)) |
+                (SupportTicket.subject.ilike(term))
+            )
+
+        if status_filter and status_filter != "All":
+            query = query.filter(SupportTicket.status == status_filter)
+
+        query = query.order_by(SupportTicket.created_at.desc())
+
+        total = query.count()
+        offset = (page - 1) * page_size
+        items = query.offset(offset).limit(page_size).all()
+
+        return items, total
+
+    @staticmethod
+    def update_status(db: Session, ticket_id: int, new_status: str) -> SupportTicket | None:
+        ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
+        if ticket:
+            ticket.status = new_status
+            db.commit()
+            db.refresh(ticket)
+        return ticket
